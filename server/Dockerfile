@@ -1,9 +1,10 @@
 FROM centos:6
 
 RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+RUN rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
 RUN yum update -y
 RUN yum install -y httpd
-RUN yum install --enablerepo=epel -y \
+RUN yum install --enablerepo=epel,remi-php56,remi -y \
                               php \
                               php-cli \
                               php-gd \
