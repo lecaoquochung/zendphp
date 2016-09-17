@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# BASIC ZENDPHP & DOCKER
+# BASIC ZENDPHP
 - Development environment for ZENDPHP with DOCKER COMPOSE
 - [ ] Setup environment
 
@@ -25,7 +24,3 @@ Go to <http://localhost:3000/> and you can see PHP works.
 - `docker-compose ps` shows the status of containers
 - `docker exec -it <container name> bash` enter the shell of a container
 - `mysql -u zendphp -p zendphp -D zendphp -h 127.0.0.1` enter the MySQL console
-=======
-# zendphp
-Basic Zend framework
->>>>>>> efa57782eb235d78ebc96f0ca3e780d03de602bb
