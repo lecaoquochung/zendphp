@@ -7,7 +7,7 @@ server:
         - mysql
         - memcached
     volumes:
-        - ./src/zendphp/public:/var/www/zendphp/public
+        - ./var/www/html:/var/www/html
 
 mysql:
     build: ./db
