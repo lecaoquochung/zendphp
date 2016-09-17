@@ -23,8 +23,9 @@ Go to <http://localhost:3000/> and you can see PHP works.
 
 
 ### Command
+- mysql -u zendphp -p zendphp -D zendphp -h 127.0.0.1
 - `docker-compose ps` shows the status of containers
-- `docker exec -it <container name> bash` enter the shell of a container
+- `docker exec -it zendphp_server_1 bash` enter the shell of a container
 - `mysql -u zendphp -p zendphp -D zendphp -h 127.0.0.1` enter the MySQL console
 
 ## Init Zend framework
@@ -43,6 +44,10 @@ wget https://getcomposer.org/composer.phar
 ```
 
 ### Module
+```
+"Album\\": "module/Album/src/"
+./composer.phar dump-autoload
+```
 
 - Reference
  - https://docs.zendframework.com/tutorials/getting-started/modules/

@@ -13,7 +13,8 @@ RUN yum install --enablerepo=epel,remi-php56,remi -y \
                               php-pdo \
                               php-xml \
                               php-xdebug \
-                              php-memcached
+                              php-memcached \
+                              mysql-client mysql mysqld
 RUN sed -i -e "s|^;date.timezone =.*$|date.timezone = Asia/Tokyo|" /etc/php.ini
 
 COPY httpd.conf /etc/httpd/conf.d/zendphp.conf

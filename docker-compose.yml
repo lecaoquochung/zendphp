@@ -13,17 +13,16 @@ server:
 db:
   build: ./db
   environment:
-    MYSQL_ROOT_PASSWORD: ROOT_PASSWORD
-    MYSQL_DATABASE: zendphp
-    MYSQL_USER: zendphp
-    MYSQL_PASSWORD: zendphp
-    MYSQL_HOST: ""
+    - MYSQL_ROOT_PASSWORD=lecaoquochung
+    - MYSQL_DATABASE=zendphp
+    - MYSQL_USER=zendphp
+    - MYSQL_PASSWORD=zendphp
 
   mem_limit: 1000000000
   volumes:
     - ./db/init.d:/docker-entrypoint-initdb.d
   ports:
-    - "33333:3306"
+    - "3306:3306"
 
 elasticsearch:
   image: "elasticsearch:1.3"
