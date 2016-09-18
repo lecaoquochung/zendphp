@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# project docker path
+# project path
 SCRIPT_DIR=`dirname $0`
 
 case $1 in
@@ -12,17 +12,19 @@ down    - Stops the services, removes the containers \n \
 db      - Open mysql \n \
 ssh     - Connect SSH \n \
 build   - Docker compose build \n \
-log     - Check service logs \n"
+log     - Check service logs \n \
+restart - Restart services \n"
+
         ;;
     ps)
             # Starts the docker machine and backgroud services
             (docker-compose ps)
             ;;
-    up)
+    up|start)
         # Starts the docker machine and backgroud services
         (docker-compose up -d)
         ;;
-    down)
+    down|destroy)
         # Stops the services, removes the containers
         (docker-compose down)
         ;;
@@ -35,12 +37,16 @@ log     - Check service logs \n"
         (docker exec -it zendphp_server_1 bash)
         ;;
     build)
-        # Connect to SSH
+        # Build image in Dockerfile
         (docker-compose build)
         ;;
     log)
         # Check service logs
         (docker-compose logs)
+        ;;
+    restart)
+        # Restart services
+        (docker-compose restart)
         ;;
     *)
         echo "unknown command"
