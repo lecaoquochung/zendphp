@@ -133,7 +133,7 @@ return [
 
 - Commit
  - https://github.com/lecaoquochung/album/commit/19ef562e87913d1188f2e46ef714375f6a1f9d6f
- - https://github.com/lecaoquochung/zendphp/commit/076aece0a0de0556fb4e85593cb1ee3a88984177
+ - https://github.com/lecaoquochung/zendphp/commit/076aece0a0de0556fb4e85593cb1ee3a88984177 (It works)
 
 ### Routing module Album
 - Create route for module album configmodule.config.php
@@ -196,7 +196,8 @@ module/Album/view/album/album/delete.phtml
  - https://docs.zendframework.com/tutorials/getting-started/routing-and-controllers/
 
 - Commit
- - https://github.com/lecaoquochung/album/commit/18d83570d6b62fa1bc8fb6e0c359a0adfe8297ab
+ - https://github.com/lecaoquochung/album/commit/18d83570d6b62fa1bc8fb6e0c359a0adfe8297ab -> (Error)
+ - https://github.com/lecaoquochung/zendphp/commit/7dbb2eb50e5cb2d6009791e67fcc222c66111ae2 (It works)
 
 ## Database & Model for module Album
 - db/init.d/schema.sql
@@ -324,7 +325,7 @@ public function getServiceConfig()
 // Add this property:
     private $table;
 
-    // Add this constructor:
+    // construct table model
     public function __construct(AlbumTable $table)
     {
         $this->table = $table;
