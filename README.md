@@ -355,3 +355,115 @@ public function getControllerConfig()
 
 - Reference
  - https://docs.zendframework.com/tutorials/getting-started/database-and-models/
+
+- Commit https://github.com/lecaoquochung/zendphp/commit/75a4ff480ff71bd5d0bcd3593d7745c1d8680199 (Error)
+```
+Error: construct model in controller
+```
+
+## Project 02: Blog Application
+
+### Init module Blog
+```
+module/
+    Blog/
+        config/
+        src/
+        view/
+```
+
+- Composer autoload, call new module
+```
+"autoload": {
+   "psr-4": {
+        "Application\\": "module/Application/src/",
+        "Album\\": "module/Album/src/",
+        "Blog\\": "module/Blog/src/"
+   }
+}
+
+composer dump-autoload
+```
+- Module namespace & config Module.php
+```
+<?php
+namespace Blog;
+
+class Module
+{
+    public function getConfig()
+    {
+        return include __DIR__ . '/../config/module.config.php';
+    }
+}
+```
+
+- Blog config file module/Blog/config/module.config.php
+```
+<?php
+// In /module/Blog/config/module.config.php:
+namespace Blog;
+
+use Zend\Router\Http\Literal;
+use Zend\ServiceManager\Factory\InvokableFactory;
+
+return [
+    // controller
+    'controllers' => [
+        'factories' => [
+            Controller\ListController::class => InvokableFactory::class,
+        ],
+    ],
+
+    // This lines opens the configuration for the RouteManager
+    'router' => [
+        // Open configuration for all possible routes
+        'routes' => [
+            // Define a new route called "blog"
+            'blog' => [
+                // Define a "literal" route type:
+                'type' => Literal::class,
+                // Configure the route itself
+                'options' => [
+                    // Listen to "/blog" as uri:
+                    'route' => '/blog',
+                    // Define default controller and action to be called when
+                    // this route is matched
+                    'defaults' => [
+                        'controller' => Controller\ListController::class,
+                        'action'     => 'index',
+                    ],
+                ],
+            ],
+        ],
+    ],
+
+    // view
+    'view_manager' => [
+        'template_path_stack' => [
+            __DIR__ . '/../view',
+        ],
+    ],
+];
+```
+
+- module/Blog/src/Controller/ListController.php
+```
+<?php
+namespace Blog\Controller;
+
+use Zend\Mvc\Controller\AbstractActionController;
+
+class ListController extends AbstractActionController
+{
+}
+```
+
+- module/Blog/view/blog/list/index.phtml
+```
+<!-- Filename: module/Blog/view/blog/list/index.phtml -->
+<h1>Blog\ListController::indexAction()</h1>
+```
+
+### Reference
+- https://docs.zendframework.com/tutorials/in-depth-guide/first-module/
