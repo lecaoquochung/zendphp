@@ -130,7 +130,10 @@ return [
 
 - Reference
  - https://docs.zendframework.com/tutorials/getting-started/modules/
+
+- Commit
  - https://github.com/lecaoquochung/album/commit/19ef562e87913d1188f2e46ef714375f6a1f9d6f
+ - https://github.com/lecaoquochung/zendphp/commit/076aece0a0de0556fb4e85593cb1ee3a88984177
 
 ### Routing module Album
 - Create route for module album configmodule.config.php
