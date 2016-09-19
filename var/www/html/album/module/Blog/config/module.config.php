@@ -6,10 +6,20 @@ use Zend\Router\Http\Literal;
 use Zend\ServiceManager\Factory\InvokableFactory;
 
 return [
+    'service_manager' => [
+        'aliases' => [
+            Model\PostRepositoryInterface::class => Model\PostRepository::class,
+        ],
+        'factories' => [
+            Model\PostRepository::class => InvokableFactory::class,
+        ],
+    ],
+
     // controller
     'controllers' => [
         'factories' => [
-            Controller\ListController::class => InvokableFactory::class,
+            // Controller\ListController::class => InvokableFactory::class,
+            Controller\ListController::class => Factory\ListControllerFactory::class,
         ],
     ],
 

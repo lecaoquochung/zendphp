@@ -408,10 +408,20 @@ use Zend\Router\Http\Literal;
 use Zend\ServiceManager\Factory\InvokableFactory;
 
 return [
+    'service_manager' => [
+        'aliases' => [
+            Model\PostRepositoryInterface::class => Model\PostRepository::class,
+        ],
+        'factories' => [
+            Model\PostRepository::class => InvokableFactory::class,
+        ],
+    ],
+
     // controller
     'controllers' => [
         'factories' => [
-            Controller\ListController::class => InvokableFactory::class,
+            // Controller\ListController::class => InvokableFactory::class,
+            Controller\ListController::class => Factory\ListControllerFactory::class,
         ],
     ],
 
@@ -450,12 +460,33 @@ return [
 - module/Blog/src/Controller/ListController.php
 ```
 <?php
+// In module/Blog/src/Controller/ListController.php:
 namespace Blog\Controller;
 
+use Blog\Model\PostRepositoryInterface;
 use Zend\Mvc\Controller\AbstractActionController;
+// Add the following import statement:
+use Zend\View\Model\ViewModel;
 
 class ListController extends AbstractActionController
 {
+    /**
+     * @var PostRepositoryInterface
+     */
+    private $postRepository;
+
+    public function __construct(PostRepositoryInterface $postRepository)
+    {
+        $this->postRepository = $postRepository;
+    }
+
+    // Add the following method:
+    public function indexAction()
+    {
+        return new ViewModel([
+            'posts' => $this->postRepository->findAllPosts(),
+        ]);
+    }
 }
 ```
 
@@ -465,5 +496,200 @@ class ListController extends AbstractActionController
 <h1>Blog\ListController::indexAction()</h1>
 ```
 
+### Blog Model and ServiceManager
+- module/Blog/src/Model/PostRepositoryInterface.php
+```
+<?php
+namespace Blog\Model;
+
+interface PostRepositoryInterface
+{
+    /**
+     * Return a set of all blog posts that we can iterate over.
+     *
+     * Each entry should be a Post instance.
+     *
+     * @return Post[]
+     */
+    public function findAllPosts();
+
+    /**
+     * Return a single blog post.
+     *
+     * @param  int $id Identifier of the post to return.
+     * @return Post
+     */
+    public function findPost($id);
+}
+```
+
+- module/Blog/src/Model/PostRepository.php
+```
+<?php
+namespace Blog\Model;
+
+class PostRepository implements PostRepositoryInterface
+{
+    private $data = [
+        1 => [
+            'id'    => 1,
+            'title' => 'Hello World #1',
+            'text'  => 'This is our first blog post!',
+        ],
+        2 => [
+            'id'    => 2,
+            'title' => 'Hello World #2',
+            'text'  => 'This is our second blog post!',
+        ],
+        3 => [
+            'id'    => 3,
+            'title' => 'Hello World #3',
+            'text'  => 'This is our third blog post!',
+        ],
+        4 => [
+            'id'    => 4,
+            'title' => 'Hello World #4',
+            'text'  => 'This is our fourth blog post!',
+        ],
+        5 => [
+            'id'    => 5,
+            'title' => 'Hello World #5',
+            'text'  => 'This is our fifth blog post!',
+        ],
+    ];
+
+    /**
+    * {@inheritDoc}
+    */
+   public function findAllPosts()
+   {
+       return array_map(function ($post) {
+           return new Post(
+               $post['title'],
+               $post['text'],
+               $post['id']
+           );
+       }, $this->data);
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   public function findPost($id)
+   {
+       if (! isset($this->data[$id])) {
+           throw new DomainException(sprintf('Post by id "%s" not found', $id));
+       }
+
+       return new Post(
+           $this->data[$id]['title'],
+           $this->data[$id]['text'],
+           $this->data[$id]['id']
+       );
+   }
+}
+```
+
+- module/Blog/src/Model/Post.php
+```
+<?php
+namespace Blog\Model;
+
+class Post
+{
+    /**
+     * @var int
+     */
+    private $id;
+
+    /**
+     * @var string
+     */
+    private $text;
+
+    /**
+     * @var string
+     */
+    private $title;
+
+    /**
+     * @param string $title
+     * @param string $text
+     * @param int|null $id
+     */
+    public function __construct($title, $text, $id = null)
+    {
+        $this->title = $title;
+        $this->text = $text;
+        $this->id = $id;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getText()
+    {
+        return $this->text;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+}
+```
+
+- /module/Blog/src/Factory/ListControllerFactory.php
+```
+<?php
+// In /module/Blog/src/Factory/ListControllerFactory.php:
+namespace Blog\Factory;
+
+use Blog\Controller\ListController;
+use Blog\Model\PostRepositoryInterface;
+use Interop\Container\ContainerInterface;
+use Zend\ServiceManager\Factory\FactoryInterface;
+
+class ListControllerFactory implements FactoryInterface
+{
+    /**
+     * @param ContainerInterface $container
+     * @param string $requestedName
+     * @param null|array $options
+     * @return ListController
+     */
+    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    {
+        return new ListController($container->get(PostRepositoryInterface::class));
+    }
+}
+```
+
+- module/Blog/view/blog/list/index.phtml
+```
+<!-- Filename: module/Blog/view/blog/list/index.phtml -->
+<h1>Blog</h1>
+
+<?php foreach ($this->posts as $post): ?>
+<article>
+  <h1 id="post<?= $post->getId() ?>"><?= $post->getTitle() ?></h1>
+
+  <p><?= $post->getText() ?></p>
+</article>
+<?php endforeach ?>
+```
+
 ### Reference
-- https://docs.zendframework.com/tutorials/in-depth-guide/first-module/
+- Blog Module https://docs.zendframework.com/tutorials/in-depth-guide/first-module/
+- Blog Model and ServiceManager https://docs.zendframework.com/tutorials/in-depth-guide/models-and-servicemanager/
