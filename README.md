@@ -3,8 +3,13 @@
 - [x] Setup environment
 - [x] Init Zend framework
 - [ ] Init CakePHP framework
-- [ ] Project 01: Album Application
-- [ ] Project 02: Blog Application
+- [ ] Init Lavarel framework
+- [ ] Project 01: Album Application (zf)
+- [ ] Project 02: Blog Application (zf)
+- [ ] Project 03: Album Application (cake)
+- [ ] Project 04: Blog Application (cake)
+- [ ] Project 05: Album Application (lava)
+- [ ] Project 06: Blog Application (lava)
 
 ## Setup environment
 - Docker for windows https://docs.docker.com/docker-for-windows/
@@ -920,4 +925,4 @@ return [
 - Blog Database Interface https://docs.zendframework.com/tutorials/in-depth-guide/preparing-databases/
  - Commit
 - SQL Abstraction and Object Hydration https://docs.zendframework.com/tutorials/in-depth-guide/zend-db-sql-zend-hydrator/
- - Commit
+ - Commit https://github.com/lecaoquochung/zendphp/commit/9d2e19ed053c847ca38e674239c82ce202fbe85a
