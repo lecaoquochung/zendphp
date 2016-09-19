@@ -5,8 +5,8 @@ RUN rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
 RUN yum update -y
 RUN yum install -y httpd
 RUN yum install --enablerepo=epel,remi-php56,remi -y \
-                              php \
-                              php-cli \
+                              php php-devel php-intl \
+                              php-cli php-curl \
                               php-gd \
                               php-mbstring \
                               php-mcrypt \
@@ -15,11 +15,13 @@ RUN yum install --enablerepo=epel,remi-php56,remi -y \
                               php-xml \
                               php-xdebug \
                               php-memcached \
-                              mysql-server phpmyadmin
+                              mysql-server \
+                              phpmyadmin
 RUN sed -i -e "s|^;date.timezone =.*$|date.timezone = Asia/Tokyo|" /etc/php.ini
 
 COPY httpd.conf /etc/httpd/conf.d/zendphp.conf
 COPY phpMyAdmin.conf /etc/httpd/conf.d/phpMyAdmin.conf
+COPY php.ini /etc/php.ini
 
 EXPOSE 80
 CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]

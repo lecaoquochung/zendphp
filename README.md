@@ -2,7 +2,7 @@
 - Development environment for ZENDPHP with DOCKER COMPOSE
 - [x] Setup environment
 - [x] Init Zend framework
-- [ ] Init CakePHP framework
+- [x] Init CakePHP framework
 - [ ] Init Lavarel framework
 - [ ] Project 01: Album Application (zf)
 - [ ] Project 02: Blog Application (zf)
@@ -15,6 +15,37 @@
 - Docker for windows https://docs.docker.com/docker-for-windows/
 - Docker for mac https://docs.docker.com/docker-for-mac/
 
+- Dockerfile
+```
+FROM centos:6
+
+RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+RUN rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+RUN yum update -y
+RUN yum install -y httpd
+RUN yum install --enablerepo=epel,remi-php56,remi -y \
+                              php php-devel php-intl \
+                              php-cli php-curl \
+                              php-gd \
+                              php-mbstring \
+                              php-mcrypt \
+                              php-mysqlnd \
+                              php-pdo \
+                              php-xml \
+                              php-xdebug \
+                              php-memcached \
+                              mysql-server \
+                              phpmyadmin
+RUN sed -i -e "s|^;date.timezone =.*$|date.timezone = Asia/Tokyo|" /etc/php.ini
+
+COPY httpd.conf /etc/httpd/conf.d/zendphp.conf
+COPY phpMyAdmin.conf /etc/httpd/conf.d/phpMyAdmin.conf
+COPY php.ini /etc/php.ini
+
+EXPOSE 80
+CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+```
+
 ### Clone this repository
 ```
 git clone https://github.com/lecaoquochung/zendphp.git
@@ -22,7 +53,7 @@ cd zendphp
 docker-compose up
 
 # /etc/hosts
-127.0.0.1 zendphp.dev
+127.0.0.1 zendphp.dev cake.dev
 127.0.0.1 zendphp-album.dev
 ```
 
@@ -47,9 +78,16 @@ wget https://getcomposer.org/composer.phar
 
 ## Init CakePHP framework
 ### Install CakePHP framework
+- Requirement
+ - HTTP Server. For example: Apache. Having mod_rewrite is preferred, but by no means required.
+ - PHP 5.5.9 or greater (including PHP 7).
+ - mbstring PHP extension
+ - intl PHP extension
 ```
 ./composer.phar self-update
 ./composer.phar create-project --prefer-dist cakephp/app cake
+
+
 ```
 
 ### Reference
