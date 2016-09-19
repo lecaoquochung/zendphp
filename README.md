@@ -2,6 +2,7 @@
 - Development environment for ZENDPHP with DOCKER COMPOSE
 - [x] Setup environment
 - [x] Init Zend framework
+- [ ] Init CakePHP framework
 - [ ] Project 01: Album Application
 - [ ] Project 02: Blog Application
 
@@ -37,6 +38,17 @@ wget https://getcomposer.org/composer.phar
 ```
 
 ### Zend framework
+`./composer.phar create-project -s dev zendframework/skeleton-application zf`
+
+## Init CakePHP framework
+### Install CakePHP framework
+```
+./composer.phar self-update
+./composer.phar create-project --prefer-dist cakephp/app cake
+```
+
+### Reference
+- CakePHP installation http://book.cakephp.org/3.0/en/installation.html
 
 ## Project 01: Album Application
 - [ ] Init skeleton
@@ -690,6 +702,222 @@ class ListControllerFactory implements FactoryInterface
 <?php endforeach ?>
 ```
 
+### Blog Database Interface
+- module/Blog/src/Model/PostCommandInterface.php
+```
+namespace Blog\Model;
+
+interface PostCommandInterface
+{
+    /**
+     * Persist a new post in the system.
+     *
+     * @param Post $post The post to insert; may or may not have an identifier.
+     * @return Post The inserted post, with identifier.
+     */
+    public function insertPost(Post $post);
+
+    /**
+     * Update an existing post in the system.
+     *
+     * @param Post $post The post to update; must have an identifier.
+     * @return Post The updated post.
+     */
+    public function updatePost(Post $post);
+
+    /**
+     * Delete a post from the system.
+     *
+     * @param Post $post The post to delete.
+     * @return bool
+     */
+    public function deletePost(Post $post);
+}
+```
+
+### SQL Abstraction and Object Hydration
+- data/posts.schema.sql
+```
+CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title varchar(100) NOT NULL, text TEXT NOT NULL);
+
+INSERT INTO posts (title, text) VALUES ('Blog #1', 'Welcome to my first blog post');
+INSERT INTO posts (title, text) VALUES ('Blog #2', 'Welcome to my second blog post');
+INSERT INTO posts (title, text) VALUES ('Blog #3', 'Welcome to my third blog post');
+INSERT INTO posts (title, text) VALUES ('Blog #4', 'Welcome to my fourth blog post');
+INSERT INTO posts (title, text) VALUES ('Blog #5', 'Welcome to my fifth blog post');
+```
+
+ - Execute `sqlite3 data/zendphp.db < data/schema.sql `
+
+- data/load_posts.php
+```
+<?php
+$db = new PDO('sqlite:' . realpath(__DIR__) . 'zendphp.db');
+$fh = fopen(__DIR__ . '/posts.schema.sql', 'r');
+while ($line = fread($fh, 4096)) {
+    $line = trim($line);
+    $db->exec($line);
+}
+fclose($fh);
+```
+ - Execute `$ php data/load_db.php`
+
+ - /Blog/src/Model/ZendDbSqlRepository.php
+ ```
+ <?php
+ // In module/Blog/src/Model/ZendDbSqlRepository.php:
+namespace Blog\Model;
+
+use InvalidArgumentException;
+use RuntimeException;
+// Replace the import of the Reflection hydrator with this:
+use Zend\Hydrator\HydratorInterface;
+use Zend\Db\Adapter\AdapterInterface;
+use Zend\Db\Adapter\Driver\ResultInterface;
+use Zend\Db\ResultSet\HydratingResultSet;
+use Zend\Db\Sql\Sql;
+
+class ZendDbSqlRepository implements PostRepositoryInterface
+{
+    /**
+     * @var AdapterInterface
+     */
+    private $db;
+
+    /**
+     * @var HydratorInterface
+     */
+    private $hydrator;
+
+    /**
+     * @var Post
+     */
+    private $postPrototype;
+
+    public function __construct(
+        AdapterInterface $db,
+        HydratorInterface $hydrator,
+        Post $postPrototype
+    ) {
+        $this->db            = $db;
+        $this->hydrator      = $hydrator;
+        $this->postPrototype = $postPrototype;
+    }
+
+    /**
+     * Return a set of all blog posts that we can iterate over.
+     *
+     * Each entry should be a Post instance.
+     *
+     * @return Post[]
+     */
+    public function findAllPosts()
+    {
+        $sql       = new Sql($this->db);
+        $select    = $sql->select('posts');
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result    = $statement->execute();
+
+        if (! $result instanceof ResultInterface || ! $result->isQueryResult()) {
+            return [];
+        }
+
+        $resultSet = new HydratingResultSet($this->hydrator, $this->postPrototype);
+        $resultSet->initialize($result);
+        return $resultSet;
+    }
+
+    /**
+     * Return a single blog post.
+     *
+     * @param  int $id Identifier of the post to return.
+     * @return Post
+     */
+     public function findPost($id)
+     {
+         $sql       = new Sql($this->db);
+         $select    = $sql->select('posts');
+         $select->where(['id = ?' => $id]);
+
+         $statement = $sql->prepareStatementForSqlObject($select);
+         $result    = $statement->execute();
+
+         if (! $result instanceof ResultInterface || ! $result->isQueryResult()) {
+             throw new RuntimeException(sprintf(
+                 'Failed retrieving blog post with identifier "%s"; unknown database error.',
+                 $id
+             ));
+         }
+
+         $resultSet = new HydratingResultSet($this->hydrator, $this->postPrototype);
+         $resultSet->initialize($result);
+         $post = $resultSet->current();
+
+         if (! $post) {
+             throw new InvalidArgumentException(sprintf(
+                 'Blog post with identifier "%s" not found.',
+                 $id
+             ));
+         }
+
+         return $post;
+     }
+}
+ ```
+
+ - module/Blog/src/Factory/ZendDbSqlRepositoryFactory.php
+ ```
+ <?php
+ // In /module/Blog/src/Factory/ZendDbSqlRepositoryFactory.php
+ namespace Blog\Factory;
+
+ use Interop\Container\ContainerInterface;
+ use Blog\Model\Post;
+ use Blog\Model\ZendDbSqlRepository;
+ use Zend\Db\Adapter\AdapterInterface;
+ use Zend\Hydrator\Reflection as ReflectionHydrator;
+ use Zend\ServiceManager\Factory\FactoryInterface;
+
+ class ZendDbSqlRepositoryFactory implements FactoryInterface
+ {
+     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+     {
+         return new ZendDbSqlRepository(
+             $container->get(AdapterInterface::class),
+             new ReflectionHydrator(),
+             new Post('', '')
+         );
+     }
+ }
+ ```
+
+ - Update module/Blog/config/module.config.php
+```
+return [
+    'service_manager' => [
+        'aliases' => [
+            // Update this line:
+            Model\PostRepositoryInterface::class => Model\ZendDbSqlRepository::class,
+        ],
+        'factories' => [
+            Model\PostRepository::class => InvokableFactory::class,
+            // Add this line:
+            Model\ZendDbSqlRepository::class => Factory\ZendDbSqlRepositoryFactory::class,
+        ],
+    ],
+    'controllers'  => [ /* ... */ ],
+    'router'       => [ /* ... */ ],
+    'view_manager' => [ /* ... */ ],
+];
+```
+
+
 ### Reference
 - Blog Module https://docs.zendframework.com/tutorials/in-depth-guide/first-module/
+ - Commit https://github.com/lecaoquochung/zendphp/commit/f0e297fcf721a57afc5be599a44438920ca096d7
 - Blog Model and ServiceManager https://docs.zendframework.com/tutorials/in-depth-guide/models-and-servicemanager/
+ - Commit https://github.com/lecaoquochung/zendphp/commit/bc0a8728d41c3064d9e76eea31fab12d7f1ee224
+- Blog Database Interface https://docs.zendframework.com/tutorials/in-depth-guide/preparing-databases/
+ - Commit
+- SQL Abstraction and Object Hydration https://docs.zendframework.com/tutorials/in-depth-guide/zend-db-sql-zend-hydrator/
+ - Commit
